@@ -1,4 +1,4 @@
-package dexidp
+package client
 
 import (
 	"fmt"
@@ -7,7 +7,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-func newClient(host string) (api.DexClient, error) {
+// New instantiates a new api.DexClient
+func New(host string) (api.DexClient, error) {
 	conn, err := grpc.Dial(host, grpc.WithInsecure())
 	if err != nil {
 		return nil, fmt.Errorf("dial: %w", err)

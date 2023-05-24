@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
+	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client"
 )
 
 var (
@@ -79,7 +81,7 @@ func (p *dexProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		return
 	}
 
-	client, err := newClient(host)
+	client, err := client.New(host)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create Dex IDP API Client",
