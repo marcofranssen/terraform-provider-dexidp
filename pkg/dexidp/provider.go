@@ -103,5 +103,7 @@ func (p *dexProvider) DataSources(context.Context) []func() datasource.DataSourc
 
 // Resources defines the resources implemented in the provider.
 func (p *dexProvider) Resources(context.Context) []func() resource.Resource {
-	return nil
+	return []func() resource.Resource{
+		NewDexClientResource,
+	}
 }

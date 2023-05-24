@@ -36,7 +36,9 @@ No requirements.
 
 ## Providers
 
-No providers.
+| Name | Version |
+|------|---------|
+| <a name="provider_dexidp"></a> [dexidp](#provider\_dexidp) | n/a |
 
 ## Modules
 
@@ -44,7 +46,9 @@ No modules.
 
 ## Resources
 
-No resources.
+| Name | Type |
+|------|------|
+| [dexidp_client.my_oidc_client](https://registry.terraform.io/providers/marcofranssen/dexidp/latest/docs/resources/client) | resource |
 
 ## Inputs
 
