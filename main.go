@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+
+	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp"
+)
 
 func main() {
-	fmt.Println("Terraform provider dexidp.io")
+	providerserver.Serve(context.Background(), dexidp.New, providerserver.ServeOpts{
+		Address: "hashicorp.com/marcofranssen/dexidp",
+	})
 }
