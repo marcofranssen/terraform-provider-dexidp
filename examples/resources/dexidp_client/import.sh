@@ -1,0 +1,1 @@
+terraform import dexidp_client.my_oidc_client awesome-client
