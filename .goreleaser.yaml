@@ -58,7 +58,7 @@ release:
     - glob: 'terraform-registry-manifest.json'
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
   footer: |
-    **Full Changelog**: https://github.com/marcofranssen/terraform-provider-curl/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/marcofranssen/terraform-provider-dexidp/compare/{{ .PreviousTag }}...{{ .Tag }}
 
 changelog:
   sort: asc
