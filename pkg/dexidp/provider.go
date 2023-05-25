@@ -43,7 +43,7 @@ func (p *dexProvider) Schema(ctx context.Context, req provider.SchemaRequest, re
 
 // Configure prepares a dexapi gRPC client for data sources and resources.
 func (p *dexProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var config providerConfig
+	var config providerConfiguration
 	diags := req.Config.Get(ctx, &config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
