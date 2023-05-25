@@ -55,34 +55,43 @@ func (r *dexClientResoure) Metadata(_ context.Context, req resource.MetadataRequ
 // Schema defines the schema for the resource.
 func (r *dexClientResoure) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description: "Provision a Dex oauth2 client.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Description: "The ID of your terraform resoure (Set to client_id automatically).",
+				Computed:    true,
 			},
 			"last_updated": schema.StringAttribute{
-				Computed: true,
+				Description: "Timestamp of the last Terraform update of the Dex client.",
+				Computed:    true,
 			},
 			"client_id": schema.StringAttribute{
-				Required: true,
+				Description: "The ID of your Dex oauth2 client.",
+				Required:    true,
 			},
 			"secret": schema.StringAttribute{
-				Required:  true,
-				Sensitive: true,
+				Description: "The Secret of your Dex oauth2 client.",
+				Required:    true,
+				Sensitive:   true,
 			},
 			"public": schema.BoolAttribute{
 				Optional: true,
 			},
 			"name": schema.StringAttribute{
-				Required: true,
+				Description: "The name of your Dex oauth2 client.",
+				Required:    true,
 			},
 			"logo_url": schema.StringAttribute{
-				Optional: true,
+				Description: "The url to the logo of your Dex oauth2 client.",
+				Optional:    true,
 			},
 			"redirect_uris": schema.ListAttribute{
+				Description: "The allowed redirect_uris for this Dex Oauth2 client.",
 				ElementType: types.StringType,
 				Required:    true,
 			},
 			"trusted_peers": schema.ListAttribute{
+				Description: "The trusted peers for this Dex Oauth2 client.",
 				ElementType: types.StringType,
 				Optional:    true,
 			},

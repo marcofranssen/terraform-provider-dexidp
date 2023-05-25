@@ -31,9 +31,11 @@ func (p *dexProvider) Metadata(ctx context.Context, req provider.MetadataRequest
 // Schema defines the provider-level schema for configuration data.
 func (p *dexProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description: "Provision Dex resources via the Dex gRPC API.",
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
-				Required: true,
+				Description: "The host and port of the Dex gRPC API.",
+				Required:    true,
 			},
 		},
 	}
