@@ -11,3 +11,16 @@ test: ## Run unit tests
 .PHONY: acc-test
 acc-test: ## Run acceptance tests
 	TF_ACC=1 go test ./...
+
+##@ Install:
+
+GOBIN := $(shell go env GOBIN)
+ifeq ($(strip $(GOBIN)),)
+    # If GOBIN is empty, set the variable VAR_NAME to a value
+    GOBIN := $(shell go env GOPATH)/bin
+endif
+
+.PHONY: install
+install: ## Install the provider to $GOENV/bin
+	@echo Installing provider to $(GOBIN)…
+	@go install .
