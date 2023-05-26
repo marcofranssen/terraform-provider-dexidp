@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/marcofranssen/terraform-provider-dexidp/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -108,8 +110,8 @@ func (r *dexClientResoure) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	redirectURIs := ListStringValuesToSlice(plan.RedirectURIs)
-	trustedPeers := ListStringValuesToSlice(plan.TrustedPeers)
+	redirectURIs := utils.ListStringValuesToSlice(plan.RedirectURIs)
+	trustedPeers := utils.ListStringValuesToSlice(plan.TrustedPeers)
 
 	createClientReq := api.CreateClientReq{
 		Client: &api.Client{
@@ -161,8 +163,8 @@ func (r *dexClientResoure) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	redirectURIs := ListStringValuesToSlice(plan.RedirectURIs)
-	trustedPeers := ListStringValuesToSlice(plan.TrustedPeers)
+	redirectURIs := utils.ListStringValuesToSlice(plan.RedirectURIs)
+	trustedPeers := utils.ListStringValuesToSlice(plan.TrustedPeers)
 
 	updateClientReq := api.UpdateClientReq{
 		Id:           plan.ClientID.ValueString(),
@@ -212,17 +214,4 @@ func (r *dexClientResoure) Delete(ctx context.Context, req resource.DeleteReques
 		)
 		return
 	}
-}
-
-func ListStringValuesToSlice(values types.List) []string {
-	elements := make([]string, len(values.Elements()))
-	for i, e := range values.Elements() {
-		if s, ok := e.(types.String); ok {
-			elements[i] = s.ValueString()
-		} else {
-			elements[i] = e.String()
-		}
-	}
-
-	return elements
 }
