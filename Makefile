@@ -6,11 +6,11 @@ help: ## Display this help.
 
 .PHONY: test
 test: ## Run unit tests
-	go test ./...
+	go test -v -count=1 ./...
 
 .PHONY: acc-test
 acc-test: ## Run acceptance tests
-	TF_ACC=1 go test ./...
+	TF_ACC=1 go test -v -count=1 ./...
 
 ##@ Install:
 
