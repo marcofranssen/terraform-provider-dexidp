@@ -1,3 +1,5 @@
+K8S_NS := terraform-provider-dexidp
+
 .PHONY: help
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -9,8 +11,9 @@ test: ## Run unit tests
 	go test -v -count=1 ./...
 
 .PHONY: acc-test
-acc-test: ## Run acceptance tests
-	TF_ACC=1 go test -v -count=1 ./...
+acc-test: install-dex ## Run acceptance tests
+	@echo Running tests…
+	@scripts/run-acc-test.sh $(K8S_NS)
 
 ##@ Install:
 
@@ -24,3 +27,9 @@ endif
 install: ## Install the provider to $GOENV/bin
 	@echo Installing provider to $(GOBIN)…
 	@go install .
+
+.PHONY: install-dex
+install-dex: ## Install dex on k8s using helm chart
+	@helm repo add dex https://charts.dexidp.io
+	@helm upgrade -n $(K8S_NS) --install --create-namespace --values .github/ci/values.yaml --wait dex dex/dex
+	@echo
