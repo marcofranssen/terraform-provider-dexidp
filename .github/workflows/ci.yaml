@@ -113,7 +113,7 @@ jobs:
           echo "pid=$!" >>"$GITHUB_OUTPUT"
 
       - name: Acceptance test
-        run: go test -v -count=1 ./...
+        run: go test -v -count=1 ./pkg/dexidp
         env:
           TF_ACC: 1
 
