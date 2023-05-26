@@ -2,13 +2,19 @@ package dexidp
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
 	"os"
 
+	"github.com/dexidp/dex/api/v2"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client"
 )
@@ -36,6 +42,25 @@ func (p *dexProvider) Schema(ctx context.Context, req provider.SchemaRequest, re
 			"host": schema.StringAttribute{
 				Description: "The host and port of the Dex gRPC API.",
 				Required:    true,
+			},
+			"tls": schema.SingleNestedAttribute{
+				Description: "TLS configuration for the Dex gRPC API.",
+				Optional:    true,
+				Attributes: map[string]schema.Attribute{
+					"ca_crt": schema.StringAttribute{
+						Description: "The server certificate authority for the Dex gRPC API",
+						Optional:    true,
+					},
+					"client_crt": schema.StringAttribute{
+						Description: "Client certificate for mutual TLS authentication",
+						Optional:    true,
+					},
+					"client_key": schema.StringAttribute{
+						Description: "Client key for mutual TLS authentication",
+						Optional:    true,
+						Sensitive:   true,
+					},
+				},
 			},
 		},
 	}
@@ -83,7 +108,7 @@ func (p *dexProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		return
 	}
 
-	client, err := client.New(host)
+	client, err := constructDexClient(host, config.TLS)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create Dex IDP API Client",
@@ -96,6 +121,38 @@ func (p *dexProvider) Configure(ctx context.Context, req provider.ConfigureReque
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
+}
+
+func constructDexClient(host string, tlsCfg *tlsConfiguration) (api.DexClient, error) {
+	if tlsCfg == nil {
+		return client.New(host, insecure.NewCredentials())
+	}
+
+	caCrt := tlsCfg.ServerCrt.ValueString()
+	clientCrt := tlsCfg.ClientCrt.ValueString()
+	clientKey := tlsCfg.ClientKey.ValueString()
+
+	if (clientCrt == "" && clientKey != "") || (clientCrt != "" && clientKey == "") {
+		return nil, fmt.Errorf("client crt and key must both be set or both be empty")
+	}
+
+	cPool := x509.NewCertPool()
+
+	if !cPool.AppendCertsFromPEM([]byte(caCrt)) {
+		return nil, fmt.Errorf("failed to parse CA crt")
+	}
+
+	clientCert, err := tls.X509KeyPair([]byte(clientCrt), []byte(clientKey))
+	if err != nil {
+		return nil, fmt.Errorf("failed to load client cert/key pair: %v", err)
+	}
+
+	clientTLSConfig := &tls.Config{
+		RootCAs:      cPool,
+		Certificates: []tls.Certificate{clientCert},
+	}
+
+	return client.New(host, credentials.NewTLS(clientTLSConfig))
 }
 
 // DataSources defines the data sources implemented in the provider.
