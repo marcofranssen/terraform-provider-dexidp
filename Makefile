@@ -33,3 +33,9 @@ install-dex: ## Install dex on k8s using helm chart
 	@helm repo add dex https://charts.dexidp.io
 	@helm upgrade -n $(K8S_NS) --install --create-namespace --values .github/ci/values.yaml --wait dex dex/dex
 	@echo
+
+.PHONY: uninstall-dex
+uninstall-dex: ## Uninstall dex from k8s
+	@helm repo add dex https://charts.dexidp.io
+	@helm uninstall -n $(K8S_NS) dex
+	@echo
