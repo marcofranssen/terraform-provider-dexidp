@@ -1,0 +1,10 @@
+config:
+  issuer: https://my-issuer.org
+
+  storage:
+    type: memory
+
+  enablePasswordDB: true
+
+grpc:
+  enabled: true

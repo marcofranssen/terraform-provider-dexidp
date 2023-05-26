@@ -2,6 +2,6 @@ package dexidp
 
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
-type providerConfig struct {
+type providerConfiguration struct {
 	Host types.String `tfsdk:"host"`
 }

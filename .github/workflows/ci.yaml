@@ -1,0 +1,122 @@
+name: ci
+on:
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: ci
+  cancel-in-progress: true
+
+jobs:
+  compile-provider:
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.5.2
+
+      - name: Setup Go
+        uses: actions/setup-go@v4.0.1
+        with:
+          go-version-file: 'go.mod'
+          check-latest: true
+          cache: true
+
+      - name: Download modules
+        run: go mod download
+
+      - name: Compile
+        run: go build -trimpath .
+
+  test-provider:
+    runs-on: ubuntu-22.04
+
+    needs: [compile-provider]
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.5.2
+
+      - name: Setup Go
+        uses: actions/setup-go@v4.0.1
+        with:
+          go-version-file: 'go.mod'
+          check-latest: true
+          cache: true
+
+      - name: Download modules
+        run: go mod download
+
+      - name: Test
+        run: go test -v -count=1 ./...
+
+  acceptancetest-provider:
+    runs-on: ${{ matrix.os }}
+
+    needs: [compile-provider]
+
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          # Kind action seems not to implement these os accordingly
+          # - windows-2022
+          # - macos-12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.5.2
+
+      - name: Setup Go
+        uses: actions/setup-go@v4.0.1
+        with:
+          go-version-file: 'go.mod'
+          check-latest: true
+          cache: true
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3.5
+        with:
+          version: v3.12.0
+
+      - name: Download modules
+        run: go mod download
+
+      - name: Create kind 1.27.2 cluster
+        uses: helm/kind-action@v1.7.0
+        # Only build a kind cluster if there are chart changes to test.
+        with:
+          version: v0.19.0
+          node_image: kindest/node:1.27.2@sha256:acf40c55718d987703d603fe543d54707e428640bdd46d47120b920b59d75b82
+          kubectl_version: v1.27.2
+          verbosity: 1
+
+      - name: Deploy Dex IDP
+        run: |
+          helm repo add dex https://charts.dexidp.io
+          helm upgrade -n dex --install --create-namespace --values .github/ci/values.yaml --wait dex dex/dex
+
+      - name: Start port-forward
+        id: port-forward
+        run: |
+          kubectl -n dex port-forward services/dex 5557:grpc &
+          echo "pid=$!" >>"$GITHUB_OUTPUT"
+
+      - name: Acceptance test
+        run: go test -v -count=1 ./...
+        env:
+          TF_ACC: 1
+
+      - name: Stop port-forward
+        if: always()
+        run: kill -9 ${{ steps.port-forward.outputs.pid }} || true
