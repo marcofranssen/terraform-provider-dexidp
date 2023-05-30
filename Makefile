@@ -34,14 +34,18 @@ install: ## Install the provider to $GOBIN
 	@echo Installing provider to $(GOBIN)…
 	@go install .
 
-.PHONY: install-dex
-install-dex: ## Install dex on k8s using helm chart
+.PHONY: setup-dex-helm-repo
+setup-dex-helm-repo:
 	@helm repo add dex https://charts.dexidp.io
-	@helm upgrade -n $(K8S_NS) --install --create-namespace --values .github/ci/values.yaml --wait dex dex/dex
+
+.PHONY: install-dex
+install-dex: setup-dex-helm-repo ## Install dex on k8s using helm chart
+	@helm upgrade -n $(K8S_NS) --install --create-namespace \
+		--values .github/ci/values.yaml --wait \
+		dex dex/dex
 	@echo
 
 .PHONY: uninstall-dex
 uninstall-dex: ## Uninstall dex from k8s
-	@helm repo add dex https://charts.dexidp.io
 	@helm uninstall -n $(K8S_NS) dex
 	@echo
