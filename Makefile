@@ -25,12 +25,12 @@ acc-test: install-dex ## Run acceptance tests
 
 GOBIN := $(shell go env GOBIN)
 ifeq ($(strip $(GOBIN)),)
-    # If GOBIN is empty, set the variable VAR_NAME to a value
+    # If GOBIN is empty, set the variable GOBIN to the $GOPATH/bin bin folder
     GOBIN := $(shell go env GOPATH)/bin
 endif
 
 .PHONY: install
-install: ## Install the provider to $GOENV/bin
+install: ## Install the provider to $GOBIN
 	@echo Installing provider to $(GOBIN)…
 	@go install .
 
