@@ -17,8 +17,14 @@ func TestNew(t *testing.T) {
 		err  error
 	}{
 		{
+			name: "unspecified host",
 			host: "",
 			err:  fmt.Errorf("dial: %w", errors.New("failed to build resolver: passthrough: received empty target in Build()")),
+		},
+		{
+			name: "localhost with port",
+			host: "localhost:5557",
+			err:  nil,
 		},
 	}
 
