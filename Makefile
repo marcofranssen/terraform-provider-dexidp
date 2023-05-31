@@ -29,6 +29,8 @@ ifeq ($(strip $(GOBIN)),)
     GOBIN := $(shell go env GOPATH)/bin
 endif
 
+HELM_RELEASE_NAME ?= dex
+
 .PHONY: install
 install: ## Install the provider to $GOBIN
 	@echo Installing provider to $(GOBIN)…
@@ -42,12 +44,12 @@ setup-dex-helm-repo:
 install-dex: setup-dex-helm-repo ## Install dex on k8s using helm chart
 	@helm upgrade -n $(K8S_NS) --install --create-namespace \
 		--values .github/ci/values.yaml --wait \
-		dex dex/dex
+		$(HELM_RELEASE_NAME) dex/dex
 	@echo
 
 .PHONY: uninstall-dex
 uninstall-dex: ## Uninstall dex from k8s
-	@helm uninstall -n $(K8S_NS) dex
+	@helm uninstall -n $(K8S_NS) $(HELM_RELEASE_NAME)
 	@echo
 
 ##@ Certificates:
