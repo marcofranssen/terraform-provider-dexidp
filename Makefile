@@ -42,10 +42,10 @@ setup-dex-helm-repo:
 install-dex: setup-dex-helm-repo ## Install dex on k8s using helm chart
 	@helm upgrade -n $(K8S_NS) --install --create-namespace \
 		--values .github/ci/values.yaml --wait \
-		dex-test dex/dex
+		dex dex/dex
 	@echo
 
 .PHONY: uninstall-dex
 uninstall-dex: ## Uninstall dex from k8s
-	@helm uninstall -n $(K8S_NS) dex-test
+	@helm uninstall -n $(K8S_NS) dex
 	@echo
