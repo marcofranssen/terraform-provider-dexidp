@@ -44,11 +44,11 @@ func (p *dexProvider) Schema(ctx context.Context, req provider.SchemaRequest, re
 				Description: "TLS configuration for the Dex gRPC API.",
 				Optional:    true,
 				Attributes: map[string]schema.Attribute{
-					"ca_crt": schema.StringAttribute{
+					"ca_cert": schema.StringAttribute{
 						Description: "The server certificate authority for the Dex gRPC API",
 						Optional:    true,
 					},
-					"client_crt": schema.StringAttribute{
+					"client_cert": schema.StringAttribute{
 						Description: "Client certificate for mutual TLS authentication",
 						Optional:    true,
 					},

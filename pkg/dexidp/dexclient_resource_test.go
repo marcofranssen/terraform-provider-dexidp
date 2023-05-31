@@ -16,7 +16,7 @@ func TestClientResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: providerConfig + `
+				Config: GetProviderConfig() + `
 resource "dexidp_client" "test_client" {
 	client_id     = "test-client"
 	name          = "My Test Client"
@@ -36,7 +36,7 @@ resource "dexidp_client" "test_client" {
 			},
 			// Update and Read testing
 			{
-				Config: providerConfig + `
+				Config: GetProviderConfig() + `
 resource "dexidp_client" "test_client" {
 	client_id     = "test-client"
 	name          = "My Test Client"

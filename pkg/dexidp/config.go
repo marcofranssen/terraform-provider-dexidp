@@ -8,7 +8,7 @@ type providerConfiguration struct {
 }
 
 type tlsConfiguration struct {
-	ServerCrt types.String `tfsdk:"ca_crt"`
-	ClientCrt types.String `tfsdk:"client_crt"`
+	ServerCrt types.String `tfsdk:"ca_cert"`
+	ClientCrt types.String `tfsdk:"client_cert"`
 	ClientKey types.String `tfsdk:"client_key"`
 }
