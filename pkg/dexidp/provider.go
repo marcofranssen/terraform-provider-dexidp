@@ -2,9 +2,7 @@ package dexidp
 
 import (
 	"context"
-	"fmt"
 	"os"
-	"strings"
 
 	"github.com/dexidp/dex/api/v2"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -127,33 +125,17 @@ func newDexClient(host string, tlsCfg *tlsConfiguration) (api.DexClient, error) 
 		return client.New(host, insecure.NewCredentials())
 	}
 
-	mtlsConfig, err := extract(tlsCfg)
-	if err != nil {
-		return nil, err
-	}
+	credentials, err := mtls.NewCredentials(mtls.Config{
+		CA:   []byte(tlsCfg.ServerCrt.ValueString()),
+		Cert: []byte(tlsCfg.ClientCrt.ValueString()),
+		Key:  []byte(tlsCfg.ClientKey.ValueString()),
+	})
 
-	credentials, err := mtls.NewCredentials(mtlsConfig)
 	if err != nil {
 		return nil, err
 	}
 
 	return client.New(host, credentials)
-}
-
-func extract(tlsCfg *tlsConfiguration) (mtls.Config, error) {
-	caCrt := tlsCfg.ServerCrt.ValueString()
-	clientCrt := tlsCfg.ClientCrt.ValueString()
-	clientKey := tlsCfg.ClientKey.ValueString()
-
-	if (clientCrt == "" && clientKey != "") || (clientCrt != "" && clientKey == "") {
-		return mtls.Config{}, fmt.Errorf("client crt and key must both be set or both be empty")
-	}
-
-	return mtls.Config{
-		CA:   strings.NewReader(caCrt),
-		Cert: strings.NewReader(clientCrt),
-		Key:  strings.NewReader(clientKey),
-	}, nil
 }
 
 // DataSources defines the data sources implemented in the provider.

@@ -4,40 +4,24 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io"
 
 	"google.golang.org/grpc/credentials"
 )
 
 type Config struct {
-	CA   io.Reader
-	Cert io.Reader
-	Key  io.Reader
+	CA   []byte
+	Cert []byte
+	Key  []byte
 }
 
 func NewCredentials(config Config) (credentials.TransportCredentials, error) {
 	cPool := x509.NewCertPool()
 
-	ca, err := io.ReadAll(config.CA)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read CA crt: %w", err)
-	}
-
-	if !cPool.AppendCertsFromPEM(ca) {
+	if !cPool.AppendCertsFromPEM(config.CA) {
 		return nil, fmt.Errorf("failed to parse CA crt")
 	}
 
-	cert, err := io.ReadAll(config.Cert)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read client crt: %w", err)
-	}
-
-	key, err := io.ReadAll(config.Key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read client key: %w", err)
-	}
-
-	certificate, err := tls.X509KeyPair(cert, key)
+	certificate, err := tls.X509KeyPair(config.Cert, config.Key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load client cert/key pair: %w", err)
 	}
