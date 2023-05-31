@@ -2,10 +2,9 @@ package dexidp
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/dexidp/dex/api/v2"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -13,10 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client"
+	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client/mtls"
 )
 
 var (
@@ -128,31 +127,33 @@ func constructDexClient(host string, tlsCfg *tlsConfiguration) (api.DexClient, e
 		return client.New(host, insecure.NewCredentials())
 	}
 
+	mtlsConfig, err := extract(tlsCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	credentials, err := mtls.NewCredentials(mtlsConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return client.New(host, credentials)
+}
+
+func extract(tlsCfg *tlsConfiguration) (mtls.Config, error) {
 	caCrt := tlsCfg.ServerCrt.ValueString()
 	clientCrt := tlsCfg.ClientCrt.ValueString()
 	clientKey := tlsCfg.ClientKey.ValueString()
 
 	if (clientCrt == "" && clientKey != "") || (clientCrt != "" && clientKey == "") {
-		return nil, fmt.Errorf("client crt and key must both be set or both be empty")
+		return mtls.Config{}, fmt.Errorf("client crt and key must both be set or both be empty")
 	}
 
-	cPool := x509.NewCertPool()
-
-	if !cPool.AppendCertsFromPEM([]byte(caCrt)) {
-		return nil, fmt.Errorf("failed to parse CA crt")
-	}
-
-	clientCert, err := tls.X509KeyPair([]byte(clientCrt), []byte(clientKey))
-	if err != nil {
-		return nil, fmt.Errorf("failed to load client cert/key pair: %v", err)
-	}
-
-	clientTLSConfig := &tls.Config{
-		RootCAs:      cPool,
-		Certificates: []tls.Certificate{clientCert},
-	}
-
-	return client.New(host, credentials.NewTLS(clientTLSConfig))
+	return mtls.Config{
+		CA:   strings.NewReader(caCrt),
+		Cert: strings.NewReader(clientCrt),
+		Key:  strings.NewReader(clientKey),
+	}, nil
 }
 
 // DataSources defines the data sources implemented in the provider.
