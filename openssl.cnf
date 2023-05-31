@@ -1,0 +1,60 @@
+# v3 CA configuration
+[ca]
+default_ca = CA_default
+
+[CA_default]
+dir = certs
+certs = $dir
+crl_dir = $dir/crl
+database = $dir/index.txt
+new_certs_dir = $dir/newcerts
+serial = $dir/serial
+private_key = $dir/ca.key
+certificate = $dir/ca.crt
+crlnumber = $dir/crlnumber
+crl = $dir/crl.pem
+default_md = sha256
+default_crl_days = 30
+default_days = 365
+preserve = no
+policy = policy_match
+
+[ req ]
+# `man req`
+default_bits        = 4096
+distinguished_name  = distinguished_name
+string_mask         = utf8only
+default_md          = sha256
+
+[distinguished_name]
+countryName = NL
+stateOrProvinceName = Limburg
+organizationName = Marco Franssen
+organizationalUnitName = Home
+commonName = marcofranssen.nl
+emailAddress = marco.franssen+dexidp@gmail.com
+
+[policy_match]
+countryName = match
+stateOrProvinceName = match
+organizationName = match
+organizationalUnitName = optional
+commonName = supplied
+emailAddress = optional
+
+# Server certificate configuration
+[server_cert]
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = DNS:localhost, IP:127.0.0.1
+
+# Client certificate configuration
+[client_cert]
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage = digitalSignature
+extendedKeyUsage = clientAuth

@@ -49,3 +49,56 @@ install-dex: setup-dex-helm-repo ## Install dex on k8s using helm chart
 uninstall-dex: ## Uninstall dex from k8s
 	@helm uninstall -n $(K8S_NS) dex
 	@echo
+
+##@ Certificates:
+
+CA_CERT := certs/ca.crt
+CA_KEY := certs/ca.key
+
+certs/ca.key:
+	@echo Generating $@…
+	@mkdir -p certs
+	@openssl genrsa -out $@ 4096
+
+certs/ca.crt: $(CA_KEY)
+	@echo Generating $@…
+	@openssl req -x509 -new -nodes -days 1825 -sha256 \
+		-config openssl.cnf \
+		-key $< -out $@ \
+		-subj "/CN=Dex CA"
+
+certs/%.key:
+	@echo Generating $@…
+	@openssl genrsa -out $@ 2048
+
+certs/server.csr: certs/server.key
+	@echo Generating $@…
+	@openssl req -new -key $< -out $@ -nodes \
+		-config openssl.cnf \
+		-subj "/CN=localhost"
+
+certs/server.crt: certs/server.csr $(CA_CERT) $(CA_KEY)
+	@echo Generating $@…
+	@openssl x509 -req -in $< -CA $(CA_CERT) -CAkey $(CA_KEY) -CAcreateserial -days 365 \
+		-extensions server_cert -extfile openssl.cnf \
+		-out $@
+
+certs/client.csr: certs/client.key
+	@echo Generating $@…
+	@openssl req -new -key $< -out $@ -nodes \
+		-config openssl.cnf \
+		-subj "/CN=Terraform provider Dex"
+
+certs/client.crt: certs/client.csr $(CA_CERT) $(CA_KEY)
+	@echo Generating $@…
+	@openssl x509 -req -in $< -CA $(CA_CERT) -CAkey $(CA_KEY) -CAcreateserial -days 365 \
+		-extensions client_cert -extfile openssl.cnf \
+		-out $@
+
+.PHONY: generate-certs
+generate-certs: certs/ca.crt certs/server.crt certs/client.crt ## Generate mTLS certificates for tests
+
+.PHONY: clean-certs
+clean-certs: ## Remove certs folder so you can regenerate all certificates
+	@echo Removing certs…
+	@rm -f certs/client.crt certs/server.crt
