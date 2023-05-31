@@ -29,6 +29,11 @@ ifeq ($(strip $(GOBIN)),)
     GOBIN := $(shell go env GOPATH)/bin
 endif
 
+.PHONY: setup-certificate
+setup-certificate: ## Generate self-signed certificate for dex
+	@echo Setting up certificate…
+	@scripts/setup-certificate.sh
+
 .PHONY: install
 install: ## Install the provider to $GOBIN
 	@echo Installing provider to $(GOBIN)…
