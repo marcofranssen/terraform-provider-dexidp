@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client"
 )
@@ -32,7 +33,7 @@ func TestNew(t *testing.T) {
 		t.Run(tc.name, func(tt *testing.T) {
 			assert := assert.New(tt)
 
-			c, err := client.New(tc.host)
+			c, err := client.New(tc.host, insecure.NewCredentials())
 			if tc.err != nil {
 				assert.Nil(c)
 				assert.ErrorContains(err, tc.err.Error())

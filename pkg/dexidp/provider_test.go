@@ -1,22 +1,27 @@
 package dexidp_test
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp"
 )
 
-const (
-	// providerConfig is a shared configuration to combine with the actual
-	// test configuration so the DexIDP client is properly configured.
-	// It is also possible to use the DEXIDP_ environment variables instead,
-	// such as updating the Makefile and running the testing through that tool.
-	providerConfig = `
+func GetProviderConfig() string {
+	cwd, _ := os.Getwd()
+
+	return fmt.Sprintf(`
 provider "dexidp" {
-  host     = "localhost:5557"
+	host = "127.0.0.1:5557"
+	tls = {
+		ca_cert     = file("%s/../../certs/ca.crt")
+		client_cert = file("%s/../../certs/client.crt")
+		client_key  = file("%s/../../certs/client.key")
+	}
+}`, cwd, cwd, cwd)
 }
-`
-)
 
 var (
 	// testAccProtoV6ProviderFactories are used to instantiate a provider during

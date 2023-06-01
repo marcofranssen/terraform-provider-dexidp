@@ -41,7 +41,9 @@ setup-dex-helm-repo:
 	@helm repo add dex https://charts.dexidp.io
 
 .PHONY: install-dex
-install-dex: setup-dex-helm-repo ## Install dex on k8s using helm chart
+install-dex: setup-dex-helm-repo $(CA_CERT) certs/server.crt certs/server.key ## Install dex on k8s using helm chart
+	@kubectl create namespace $(K8S_NS) || true
+	@kubectl -n $(K8S_NS) create configmap dex-tls --from-file=certs/server.crt --from-file=certs/server.key --from-file=$(CA_CERT) || true
 	@helm upgrade -n $(K8S_NS) --install --create-namespace \
 		--values .github/ci/values.yaml --wait \
 		$(HELM_RELEASE_NAME) dex/dex
@@ -50,6 +52,7 @@ install-dex: setup-dex-helm-repo ## Install dex on k8s using helm chart
 .PHONY: uninstall-dex
 uninstall-dex: ## Uninstall dex from k8s
 	@helm uninstall -n $(K8S_NS) $(HELM_RELEASE_NAME)
+	@kubectl delete namespace $(K8S_NS)
 	@echo
 
 ##@ Certificates:
