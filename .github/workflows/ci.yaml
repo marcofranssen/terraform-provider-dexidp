@@ -102,21 +102,7 @@ jobs:
           verbosity: 1
 
       - name: Deploy Dex IDP
-        run: |
-          helm repo add dex https://charts.dexidp.io
-          helm upgrade -n dex --install --create-namespace --values .github/ci/values.yaml --wait dex dex/dex
-
-      - name: Start port-forward
-        id: port-forward
-        run: |
-          kubectl -n dex port-forward services/dex 5557:grpc &
-          echo "pid=$!" >>"$GITHUB_OUTPUT"
+        run: make install-dex
 
       - name: Acceptance test
-        run: go test -v -count=1 ./pkg/dexidp
-        env:
-          TF_ACC: 1
-
-      - name: Stop port-forward
-        if: always()
-        run: kill -9 ${{ steps.port-forward.outputs.pid }} || true
+        run: make acc-test
