@@ -13,10 +13,22 @@ Provision Dex resources via the Dex gRPC API.
 ## Example Usage
 
 ```terraform
-# Below example expects the Dex gRPC server to be reachable at localhost
+# Below examples expects the Dex gRPC server to be reachable at localhost
 
 provider "dexidp" {
   host = "127.0.0.1:5557"
+}
+
+# This example uses a mTLS certificate to authenticate the Dex gRPC server
+
+provider "dexidp" {
+  host = "127.0.0.1:5557"
+
+  tls = {
+    ca_cert     = file("certs/ca.crt")
+    client_cert = file("certs/client.crt")
+    client_key  = file("certs/client.key")
+  }
 }
 ```
 
@@ -26,3 +38,19 @@ provider "dexidp" {
 ### Required
 
 - `host` (String) The host and port of the Dex gRPC API.
+
+### Optional
+
+- `tls` (Attributes) TLS configuration for the Dex gRPC API. (see [below for nested schema](#nestedatt--tls))
+
+<a id="nestedatt--tls"></a>
+### Nested Schema for `tls`
+
+Required:
+
+- `ca_cert` (String) The server certificate authority for the Dex gRPC API
+
+Optional:
+
+- `client_cert` (String) Client certificate for mutual TLS authentication
+- `client_key` (String, Sensitive) Client key for mutual TLS authentication
