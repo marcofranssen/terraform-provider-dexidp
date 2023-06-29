@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/dexidp/dex/api/v2 v2.1.0
 	github.com/hashicorp/terraform-plugin-docs v0.15.0
-	github.com/hashicorp/terraform-plugin-framework v1.3.1
+	github.com/hashicorp/terraform-plugin-framework v1.3.2
 	google.golang.org/grpc v1.56.1
 )
 
