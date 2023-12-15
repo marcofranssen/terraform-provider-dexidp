@@ -20,7 +20,7 @@ func TestNew(t *testing.T) {
 		{
 			name: "unspecified host",
 			host: "",
-			err:  fmt.Errorf("dial: %w", errors.New("failed to build resolver: passthrough: received empty target in Build()")),
+			err:  fmt.Errorf("dial: %w", errors.New("failed to exit idle mode: passthrough: received empty target in Build()")),
 		},
 		{
 			name: "localhost with port",
