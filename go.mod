@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/dexidp/dex/api/v2 v2.1.0
-	github.com/hashicorp/terraform-plugin-docs v0.17.0
+	github.com/hashicorp/terraform-plugin-docs v0.18.0
 	github.com/hashicorp/terraform-plugin-framework v1.5.0
 	google.golang.org/grpc v1.60.1
 )
@@ -56,7 +56,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hc-install v0.6.2 // indirect
 	github.com/hashicorp/terraform-exec v0.20.0 // indirect
-	github.com/hashicorp/terraform-json v0.20.0 // indirect
+	github.com/hashicorp/terraform-json v0.21.0 // indirect
 	github.com/hashicorp/terraform-plugin-go v0.20.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0 // indirect
 	github.com/hashicorp/terraform-plugin-testing v1.6.0
