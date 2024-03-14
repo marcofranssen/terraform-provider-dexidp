@@ -3,7 +3,7 @@ module github.com/marcofranssen/terraform-provider-dexidp
 go 1.21
 
 require (
-	github.com/dexidp/dex/api/v2 v2.1.0
+	github.com/dexidp/dex/api/v2 v2.1.1-0.20240125142631-9451d87ca0c9
 	github.com/hashicorp/terraform-plugin-docs v0.18.0
 	github.com/hashicorp/terraform-plugin-framework v1.6.1
 	github.com/hashicorp/terraform-plugin-go v0.22.1
@@ -35,7 +35,7 @@ require (
 	github.com/yuin/goldmark-meta v1.1.0 // indirect
 	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819 // indirect
 	golang.org/x/tools v0.13.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240228224816-df926f6c8641 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
