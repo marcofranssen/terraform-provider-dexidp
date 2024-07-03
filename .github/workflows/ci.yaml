@@ -137,8 +137,8 @@ jobs:
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: v0.19.0
-          node_image: kindest/node:1.27.2@sha256:acf40c55718d987703d603fe543d54707e428640bdd46d47120b920b59d75b82
-          kubectl_version: v1.27.2
+          node_image: kindest/node:v1.30.2@sha256:ecfe5841b9bee4fe9690f49c118c33629fa345e3350a0c67a5a34482a99d6bba
+          kubectl_version: v1.30.2
           verbosity: 1
 
       - name: Deploy Dex IDP
