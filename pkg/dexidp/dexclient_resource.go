@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/marcofranssen/terraform-provider-dexidp/pkg/utils"
@@ -88,6 +89,8 @@ func (r *dexClientResoure) Schema(_ context.Context, _ resource.SchemaRequest, r
 			"logo_url": schema.StringAttribute{
 				Description: "The url to the logo of your Dex oauth2 client.",
 				Optional:    true,
+				Default:     stringdefault.StaticString(""),
+				Computed:    true,
 			},
 			"redirect_uris": schema.ListAttribute{
 				Description: "The allowed redirect_uris for this Dex Oauth2 client.",
