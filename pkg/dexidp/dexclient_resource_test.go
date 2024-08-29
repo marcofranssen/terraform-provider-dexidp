@@ -34,6 +34,15 @@ resource "dexidp_client" "test_client" {
 					resource.TestCheckResourceAttrSet(testResourceName, "last_updated"),
 				),
 			},
+			// ImportState testing
+			{
+				ResourceName:      testResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// The last_updated attribute does not exist in the Dex gRPC
+				// API, therefore there is no value for it during import.
+				ImportStateVerifyIgnore: []string{"last_updated"},
+			},
 			// Update and Read testing
 			{
 				Config: GetProviderConfig() + `

@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/dexidp/dex/api/v2"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/marcofranssen/terraform-provider-dexidp/pkg/utils"
@@ -15,8 +17,9 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &dexClientResoure{}
-	_ resource.ResourceWithConfigure = &dexClientResoure{}
+	_ resource.Resource                = &dexClientResoure{}
+	_ resource.ResourceWithConfigure   = &dexClientResoure{}
+	_ resource.ResourceWithImportState = &dexClientResoure{}
 )
 
 // NewDexClientResource instantiates a new Dex Client resource.
@@ -86,6 +89,8 @@ func (r *dexClientResoure) Schema(_ context.Context, _ resource.SchemaRequest, r
 			"logo_url": schema.StringAttribute{
 				Description: "The url to the logo of your Dex oauth2 client.",
 				Optional:    true,
+				Default:     stringdefault.StaticString(""),
+				Computed:    true,
 			},
 			"redirect_uris": schema.ListAttribute{
 				Description: "The allowed redirect_uris for this Dex Oauth2 client.",
@@ -152,6 +157,40 @@ func (r *dexClientResoure) Create(ctx context.Context, req resource.CreateReques
 
 // Read refreshes the Terraform state with the latest data.
 func (r *dexClientResoure) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state dexClientModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	getReq := api.GetClientReq{
+		Id: state.ID.ValueString(),
+	}
+	response, err := r.client.GetClient(ctx, &getReq)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error getting Dex client",
+			fmt.Sprintf("Could not get Dex client, unexpected error: %v", err),
+		)
+		return
+	}
+	c := response.Client
+
+	state.ClientID = state.ID
+	state.Name = types.StringValue(c.Name)
+	state.LogoURL = types.StringValue(c.LogoUrl)
+	state.Secret = types.StringValue(c.Secret)
+	redirectURIs, _ := types.ListValueFrom(ctx, types.StringType, c.RedirectUris)
+	trustedPeers, _ := types.ListValueFrom(ctx, types.StringType, c.TrustedPeers)
+	state.RedirectURIs = redirectURIs
+	state.TrustedPeers = trustedPeers
+
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -214,4 +253,10 @@ func (r *dexClientResoure) Delete(ctx context.Context, req resource.DeleteReques
 		)
 		return
 	}
+}
+
+// ImportState imports an existing client into terraform state
+func (r *dexClientResoure) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
