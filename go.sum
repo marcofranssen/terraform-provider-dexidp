@@ -34,8 +34,8 @@ github.com/cyphar/filepath-securejoin v0.2.4/go.mod h1:aPGpWjXOXUn2NCNjFvBE6aRxG
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/dexidp/dex/api/v2 v2.1.1-0.20240807174518-43956db7fd75 h1:+6yv8pY6NPzvEExj/rWp8xu9LZNNUQImWofqpcaW+Og=
-github.com/dexidp/dex/api/v2 v2.1.1-0.20240807174518-43956db7fd75/go.mod h1:wW7pJO4K9SxAgwjTWGv9jzBS6sbKcItdtbC25uJoZvg=
+github.com/dexidp/dex/api/v2 v2.2.0 h1:lMehnAw5NwMorWcCf5ncwzqe0uJ/g/PtK7DR4K8uM5E=
+github.com/dexidp/dex/api/v2 v2.2.0/go.mod h1:wW7pJO4K9SxAgwjTWGv9jzBS6sbKcItdtbC25uJoZvg=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
