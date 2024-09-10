@@ -3,7 +3,7 @@ module github.com/marcofranssen/terraform-provider-dexidp
 go 1.23
 
 require (
-	github.com/dexidp/dex/api/v2 v2.1.1-0.20240807174518-43956db7fd75
+	github.com/dexidp/dex/api/v2 v2.2.0
 	github.com/hashicorp/terraform-plugin-docs v0.19.4
 	github.com/hashicorp/terraform-plugin-framework v1.11.0
 	github.com/hashicorp/terraform-plugin-go v0.23.0
