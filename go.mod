@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/dexidp/dex/api/v2 v2.4.0
 	github.com/hashicorp/terraform-plugin-docs v0.22.0
-	github.com/hashicorp/terraform-plugin-framework v1.15.0
+	github.com/hashicorp/terraform-plugin-framework v1.15.1
 	github.com/hashicorp/terraform-plugin-go v0.28.0
 	github.com/hashicorp/terraform-plugin-testing v1.13.3
 	google.golang.org/grpc v1.75.1
