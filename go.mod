@@ -1,9 +1,9 @@
 module github.com/marcofranssen/terraform-provider-dexidp
 
-go 1.24
+go 1.24.0
 
 require (
-	github.com/dexidp/dex/api/v2 v2.3.0
+	github.com/dexidp/dex/api/v2 v2.4.0
 	github.com/hashicorp/terraform-plugin-docs v0.22.0
 	github.com/hashicorp/terraform-plugin-framework v1.15.0
 	github.com/hashicorp/terraform-plugin-go v0.28.0
@@ -88,5 +88,5 @@ require (
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
+	google.golang.org/protobuf v1.36.8 // indirect
 )
