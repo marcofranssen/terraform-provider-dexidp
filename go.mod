@@ -1,6 +1,6 @@
 module github.com/marcofranssen/terraform-provider-dexidp
 
-go 1.24.0
+go 1.25.1
 
 require (
 	github.com/dexidp/dex/api/v2 v2.4.0
