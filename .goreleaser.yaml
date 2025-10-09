@@ -55,27 +55,30 @@ signs:
       # need to pass the batch flag to indicate its not interactive.
       - "--batch"
       - "--local-user"
-      - "{{ .Env.GPG_FINGERPRINT }}" # set this environment variable for your signing key
+      - "19C6FE48CFD21E0DAF1DD73546799BD3EFAA2305"
       - "--output"
       - "${signature}"
       - "--detach-sign"
       - "${artifact}"
 
 release:
+  github:
+    owner: makeshift
+    name: terraform-provider-dexidp
   draft: false
   prerelease: auto
   extra_files:
     - glob: 'terraform-registry-manifest.json'
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
-  footer: |
-    **Full Changelog**: https://github.com/marcofranssen/terraform-provider-dexidp/compare/{{ .PreviousTag }}...{{ .Tag }}
+#   footer: |
+#     **Full Changelog**: https://github.com/marcofranssen/terraform-provider-dexidp/compare/{{ .PreviousTag }}...{{ .Tag }}
 
-changelog:
-  sort: asc
-  use: github
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
-      - Merge Pull request
-      - Merge branch
+# changelog:
+#   sort: asc
+#   use: github
+#   filters:
+#     exclude:
+#       - "^docs:"
+#       - "^test:"
+#       - Merge Pull request
+#       - Merge branch
