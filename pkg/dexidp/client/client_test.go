@@ -1,12 +1,13 @@
 package client_test
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 
 	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client"
 )
@@ -33,7 +34,7 @@ func TestNew(t *testing.T) {
 		t.Run(tc.name, func(tt *testing.T) {
 			assert := assert.New(tt)
 
-			c, err := client.New(tc.host, insecure.NewCredentials())
+			c, err := client.New(tc.host, credentials.NewTLS(&tls.Config{InsecureSkipVerify: true}))
 			if tc.err != nil {
 				assert.Nil(c)
 				assert.ErrorContains(err, tc.err.Error())
