@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   compile-provider:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     permissions:
       contents: read
@@ -32,7 +32,7 @@ jobs:
         run: go build -trimpath .
 
   check-docs:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     permissions:
       contents: read
@@ -72,7 +72,7 @@ jobs:
           EOF
 
   test-provider:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     needs: [compile-provider]
 
@@ -108,7 +108,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-22.04
+          - ubuntu-24.04
           # Kind action seems not to implement these os accordingly
           # - windows-2022
           # - macos-12
