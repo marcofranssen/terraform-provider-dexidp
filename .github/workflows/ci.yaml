@@ -133,7 +133,7 @@ jobs:
         run: go mod download
 
       - name: Create kind 1.33.4 cluster
-        uses: helm/kind-action@v1.13.0
+        uses: helm/kind-action@v1.14.0
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: v0.19.0
