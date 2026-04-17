@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/marcofranssen/terraform-provider-dexidp/pkg/utils"
@@ -25,6 +26,39 @@ var (
 // NewDexClientResource instantiates a new Dex Client resource.
 func NewDexClientResource() resource.Resource {
 	return &dexClientResoure{}
+}
+
+type secretRequiredWhenPublicFalseValidator struct{}
+
+func (v secretRequiredWhenPublicFalseValidator) Description(ctx context.Context) string {
+	return "secret is required when public is false"
+}
+
+func (v secretRequiredWhenPublicFalseValidator) MarkdownDescription(ctx context.Context) string {
+	return "secret is required when public is false"
+}
+
+func (v secretRequiredWhenPublicFalseValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
+		return
+	}
+
+	var publicVal types.Bool
+	diags := req.Config.GetAttribute(ctx, path.Root("public"), &publicVal)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	if publicVal.IsUnknown() || publicVal.IsNull() || !publicVal.ValueBool() {
+		if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Secret Required",
+				"secret is required when public is false",
+			)
+		}
+	}
 }
 
 type dexClientResoure struct {
@@ -75,9 +109,12 @@ func (r *dexClientResoure) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Required:    true,
 			},
 			"secret": schema.StringAttribute{
-				Description: "The Secret of your Dex oauth2 client.",
-				Required:    true,
+				Description: "The Secret of your Dex oauth2 client. Not required for public clients.",
+				Optional:    true,
 				Sensitive:   true,
+				Validators: []validator.String{
+					secretRequiredWhenPublicFalseValidator{},
+				},
 			},
 			"public": schema.BoolAttribute{
 				Optional: true,
@@ -118,16 +155,21 @@ func (r *dexClientResoure) Create(ctx context.Context, req resource.CreateReques
 	redirectURIs := utils.ListStringValuesToSlice(plan.RedirectURIs)
 	trustedPeers := utils.ListStringValuesToSlice(plan.TrustedPeers)
 
+	client := &api.Client{
+		Id:           plan.ClientID.ValueString(),
+		Name:         plan.Name.ValueString(),
+		Public:       plan.Public.ValueBool(),
+		RedirectUris: redirectURIs,
+		TrustedPeers: trustedPeers,
+		LogoUrl:      plan.LogoURL.ValueString(),
+	}
+
+	if !plan.Public.ValueBool() {
+		client.Secret = plan.Secret.ValueString()
+	}
+
 	createClientReq := api.CreateClientReq{
-		Client: &api.Client{
-			Id:           plan.ClientID.ValueString(),
-			Secret:       plan.Secret.ValueString(),
-			Name:         plan.Name.ValueString(),
-			Public:       plan.Public.ValueBool(),
-			RedirectUris: redirectURIs,
-			TrustedPeers: trustedPeers,
-			LogoUrl:      plan.LogoURL.ValueString(),
-		},
+		Client: client,
 	}
 	response, err := r.client.CreateClient(ctx, &createClientReq)
 	if err != nil {
