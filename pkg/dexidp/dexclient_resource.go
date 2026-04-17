@@ -32,15 +32,17 @@ type dexClientResoure struct {
 }
 
 type dexClientModel struct {
-	ID           types.String `tfsdk:"id"`
-	ClientID     types.String `tfsdk:"client_id"`
-	Secret       types.String `tfsdk:"secret"`
-	Name         types.String `tfsdk:"name"`
-	Public       types.Bool   `tfsdk:"public"`
-	LogoURL      types.String `tfsdk:"logo_url"`
-	RedirectURIs types.List   `tfsdk:"redirect_uris"`
-	TrustedPeers types.List   `tfsdk:"trusted_peers"`
-	LastUpdated  types.String `tfsdk:"last_updated"`
+	ID              types.String `tfsdk:"id"`
+	ClientID        types.String `tfsdk:"client_id"`
+	Secret          types.String `tfsdk:"secret"`
+	SecretWo        types.String `tfsdk:"secret_wo"`
+	SecretWoVersion types.String `tfsdk:"secret_wo_version"`
+	Name            types.String `tfsdk:"name"`
+	Public          types.Bool   `tfsdk:"public"`
+	LogoURL         types.String `tfsdk:"logo_url"`
+	RedirectURIs    types.List   `tfsdk:"redirect_uris"`
+	TrustedPeers    types.List   `tfsdk:"trusted_peers"`
+	LastUpdated     types.String `tfsdk:"last_updated"`
 }
 
 // Configure adds the provider configured client to the resource.
@@ -76,8 +78,16 @@ func (r *dexClientResoure) Schema(_ context.Context, _ resource.SchemaRequest, r
 			},
 			"secret": schema.StringAttribute{
 				Description: "The Secret of your Dex oauth2 client.",
-				Required:    true,
-				Sensitive:   true,
+				Optional:    true,
+			},
+			"secret_wo": schema.StringAttribute{
+				Description: "The Secret of your Dex oauth2 client (write-only, not persisted to state).",
+				Optional:    true,
+				WriteOnly:   true,
+			},
+			"secret_wo_version": schema.StringAttribute{
+				Description: "Version for write-only secret validation.",
+				Optional:    true,
 			},
 			"public": schema.BoolAttribute{
 				Optional: true,
@@ -115,13 +125,24 @@ func (r *dexClientResoure) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
+	var secretWo types.String
+	diags = req.Config.GetAttribute(ctx, path.Root("secret_wo"), &secretWo)
+	resp.Diagnostics.Append(diags...)
+
+	var clientSecret string
+	if !secretWo.IsNull() && secretWo.ValueString() != "" {
+		clientSecret = secretWo.ValueString()
+	} else {
+		clientSecret = plan.Secret.ValueString()
+	}
+
 	redirectURIs := utils.ListStringValuesToSlice(plan.RedirectURIs)
 	trustedPeers := utils.ListStringValuesToSlice(plan.TrustedPeers)
 
 	createClientReq := api.CreateClientReq{
 		Client: &api.Client{
 			Id:           plan.ClientID.ValueString(),
-			Secret:       plan.Secret.ValueString(),
+			Secret:       clientSecret,
 			Name:         plan.Name.ValueString(),
 			Public:       plan.Public.ValueBool(),
 			RedirectUris: redirectURIs,
@@ -180,7 +201,6 @@ func (r *dexClientResoure) Read(ctx context.Context, req resource.ReadRequest, r
 	state.ClientID = state.ID
 	state.Name = types.StringValue(c.Name)
 	state.LogoURL = types.StringValue(c.LogoUrl)
-	state.Secret = types.StringValue(c.Secret)
 	redirectURIs, _ := types.ListValueFrom(ctx, types.StringType, c.RedirectUris)
 	trustedPeers, _ := types.ListValueFrom(ctx, types.StringType, c.TrustedPeers)
 	state.RedirectURIs = redirectURIs
