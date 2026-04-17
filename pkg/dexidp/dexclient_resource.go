@@ -3,6 +3,7 @@ package dexidp
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/dexidp/dex/api/v2"
@@ -11,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/marcofranssen/terraform-provider-dexidp/pkg/utils"
 )
@@ -25,6 +28,14 @@ var (
 // NewDexClientResource instantiates a new Dex Client resource.
 func NewDexClientResource() resource.Resource {
 	return &dexClientResoure{}
+}
+
+func isUnimplementedError(err error) bool {
+	st, ok := status.FromError(err)
+	if !ok {
+		return strings.Contains(err.Error(), "Unimplemented")
+	}
+	return st.Code() == codes.Unimplemented
 }
 
 type dexClientResoure struct {
@@ -190,10 +201,19 @@ func (r *dexClientResoure) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 	response, err := r.client.GetClient(ctx, &getReq)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error getting Dex client",
-			fmt.Sprintf("Could not get Dex client, unexpected error: %v", err),
-		)
+		if isUnimplementedError(err) {
+			resp.Diagnostics.AddError(
+				"Error getting Dex client",
+				"The Dex server does not support the GetClient method. "+
+					"This usually means you need to upgrade your Dex server to a newer version. "+
+					"The GetClient method was added in Dex API v2 (Dex v2.37+).",
+			)
+		} else {
+			resp.Diagnostics.AddError(
+				"Error getting Dex client",
+				fmt.Sprintf("Could not get Dex client, unexpected error: %v", err),
+			)
+		}
 		return
 	}
 	c := response.Client
