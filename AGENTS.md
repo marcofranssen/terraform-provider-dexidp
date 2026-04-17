@@ -22,3 +22,9 @@
 ## Local Testing
 - Set up `.terraformrc` with dev_overrides pointing to your `$GOBIN`
 - Use `tfenv use` to match `.terraform-version`
+
+## Important Patterns
+- Write-only attributes: use `WriteOnly: true` in schema + retrieve via `req.Config.GetAttribute`
+- Data sources: implement `datasource.DataSource` + register in provider's `DataSources()` method
+- Ephemeral resources: implement `ephemeral.EphemeralResource` + register via `provider.ProviderWithEphemeralResources`
+- Ephemeral resources use `resp.Result.Set()` (not `ResponseResult`) and require `resp.RenewAt` for expiry

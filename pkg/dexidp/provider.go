@@ -6,6 +6,7 @@ import (
 
 	"github.com/dexidp/dex/api/v2"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -17,7 +18,8 @@ import (
 )
 
 var (
-	_ provider.Provider = &dexProvider{}
+	_ provider.Provider                       = &dexProvider{}
+	_ provider.ProviderWithEphemeralResources = &dexProvider{}
 )
 
 func New() provider.Provider {
@@ -140,12 +142,22 @@ func newDexClient(host string, tlsCfg *tlsConfiguration) (api.DexClient, error) 
 
 // DataSources defines the data sources implemented in the provider.
 func (p *dexProvider) DataSources(context.Context) []func() datasource.DataSource {
-	return nil
+	return []func() datasource.DataSource{
+		NewClientDataSource,
+		NewClientsDataSource,
+	}
 }
 
 // Resources defines the resources implemented in the provider.
 func (p *dexProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewDexClientResource,
+	}
+}
+
+// EphemeralResources defines the ephemeral resources implemented in the provider.
+func (p *dexProvider) EphemeralResources(context.Context) []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{
+		NewClientSecretEphemeral,
 	}
 }
