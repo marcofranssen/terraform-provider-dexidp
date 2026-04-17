@@ -31,12 +31,16 @@ resource "dexidp_client" "my_oidc_client" {
 - `client_id` (String) The ID of your Dex oauth2 client.
 - `name` (String) The name of your Dex oauth2 client.
 - `redirect_uris` (List of String) The allowed redirect_uris for this Dex Oauth2 client.
-- `secret` (String, Sensitive) The Secret of your Dex oauth2 client.
 
 ### Optional
 
+> **NOTE**: [Write-only arguments](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments) are supported in Terraform 1.11 and later.
+
 - `logo_url` (String) The url to the logo of your Dex oauth2 client.
 - `public` (Boolean)
+- `secret` (String) The Secret of your Dex oauth2 client.
+- `secret_wo` (String, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) The Secret of your Dex oauth2 client (write-only, not persisted to state).
+- `secret_wo_version` (String) Version for write-only secret validation.
 - `trusted_peers` (List of String) The trusted peers for this Dex Oauth2 client.
 
 ### Read-Only
