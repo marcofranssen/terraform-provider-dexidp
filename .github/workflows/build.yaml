@@ -1,4 +1,4 @@
-name: Build
+name: Release
 
 on:
   push:
@@ -11,8 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux, windows]
-        goarch: [amd64]
+        include:
+          - goos: linux
+            goarch: amd64
+            ext: ''
+          - goos: windows
+            goarch: amd64
+            ext: '.exe'
     steps:
       - uses: actions/checkout@v4
 
@@ -27,24 +32,19 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
-          EXT=""
-          if [ "$GOOS" = "windows" ]; then
-            EXT=".exe"
-          fi
-          OUTPUT_NAME="terraform-provider-dexidp_v1.0.0_${GOOS}_${GOARCH}${EXT}"
-          go build -ldflags="-s -w -X main.version=v1.0.0 -X main.commit=${{ github.sha }}" -o "$OUTPUT_NAME" .
+          OUTPUT_NAME="terraform-provider-dexidp_1.0.0_${GOOS}_${GOARCH}${{ matrix.ext }}"
+          go build -ldflags="-s -w -X main.version=1.0.0 -X main.commit=${{ github.sha }}" -o "$OUTPUT_NAME" .
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: provider-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: terraform-provider-dexidp_v1.0.0_*
+      - name: Compute checksums
+        run: |
+          sha256sum terraform-provider-dexidp_1.0.0_* > terraform-provider-dexidp_1.0.0_SHA256SUMS
 
-      - name: Upload release asset
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Upload artifacts
         uses: softprops/action-gh-release@v2
         with:
-          files: terraform-provider-dexidp_v1.0.0_*
+          files |
+            terraform-provider-dexidp_1.0.0_*
+            terraform-provider-dexidp_1.0.0_SHA256SUMS
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
