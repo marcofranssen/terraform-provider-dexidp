@@ -3,14 +3,13 @@ package dexidp
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/dexidp/dex/api/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/resource/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dennismdejong/terraform-provider-dexidp/pkg/utils"
@@ -26,6 +25,10 @@ var (
 // NewDexClientResource instantiates a new Dex Client resource.
 func NewDexClientResource() resource.Resource {
 	return &dexClientResoure{}
+}
+
+type dexClientResoure struct {
+	client api.DexClient
 }
 
 type secretRequiredWhenPublicFalseValidator struct{}
@@ -188,7 +191,7 @@ func (r *dexClientResoure) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	plan.ID = types.StringValue(response.Client.GetId())
-	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
+	// plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -209,7 +212,7 @@ func (r *dexClientResoure) Read(ctx context.Context, req resource.ReadRequest, r
 	getReq := api.GetClientReq{
 		Id: state.ID.ValueString(),
 	}
-	response, err := r.client.GetClient(ctx, &getReq)
+response, err := r.client.GetClient(ctx, &getReq)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error getting Dex client",
@@ -265,7 +268,7 @@ func (r *dexClientResoure) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	plan.ID = types.StringValue(plan.ClientID.ValueString())
-	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
+	// plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
