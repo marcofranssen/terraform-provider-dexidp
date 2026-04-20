@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client"
-	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client/mtls"
+	"github.com/dennismdejong/terraform-provider-dexidp/pkg/dexidp/client"
+	"github.com/dennismdejong/terraform-provider-dexidp/pkg/dexidp/client/mtls"
 )
 
 var (

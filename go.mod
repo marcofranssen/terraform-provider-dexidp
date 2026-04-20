@@ -1,4 +1,4 @@
-module github.com/marcofranssen/terraform-provider-dexidp
+module github.com/dennismdejong/terraform-provider-dexidp
 
 go 1.25.1
 
