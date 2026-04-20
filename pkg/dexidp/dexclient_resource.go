@@ -139,7 +139,7 @@ func (r *dexClientResoure) Create(ctx context.Context, req resource.CreateReques
 	if response.AlreadyExists {
 		resp.Diagnostics.AddError(
 			"Error creating Dex client",
-			fmt.Sprintf("Could not create Dex client, client with this Name already exists: %v", err),
+			"Could not create Dex client, client with this Name already exists.",
 		)
 		return
 	}
