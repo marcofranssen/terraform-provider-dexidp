@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/dennismdejong/terraform-provider-dexidp/pkg/utils"
@@ -31,43 +30,6 @@ type dexClientResoure struct {
 	client api.DexClient
 }
 
-type secretRequiredWhenPublicFalseValidator struct{}
-
-func (v secretRequiredWhenPublicFalseValidator) Description(ctx context.Context) string {
-	return "secret is required when public is false"
-}
-
-func (v secretRequiredWhenPublicFalseValidator) MarkdownDescription(ctx context.Context) string {
-	return "secret is required when public is false"
-}
-
-func (v secretRequiredWhenPublicFalseValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
-		return
-	}
-
-	var publicVal types.Bool
-	diags := req.Config.GetAttribute(ctx, path.Root("public"), &publicVal)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	if publicVal.IsUnknown() || publicVal.IsNull() || !publicVal.ValueBool() {
-		if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
-				"Secret Required",
-				"secret is required when public is false",
-			)
-		}
-	}
-}
-
-type dexClientResoure struct {
-	client api.DexClient
-}
-
 type dexClientModel struct {
 	ID           types.String `tfsdk:"id"`
 	ClientID     types.String `tfsdk:"client_id"`
@@ -75,9 +37,8 @@ type dexClientModel struct {
 	Name         types.String `tfsdk:"name"`
 	Public       types.Bool   `tfsdk:"public"`
 	LogoURL      types.String `tfsdk:"logo_url"`
-	RedirectURIs types.List   `tfsdk:"redirect_uris"`
-	TrustedPeers types.List   `tfsdk:"trusted_peers"`
-	LastUpdated  types.String `tfsdk:"last_updated"`
+	RedirectURIs types.List `tfsdk:"redirect_uris"`
+	TrustedPeers types.List `tfsdk:"trusted_peers"`
 }
 
 // Configure adds the provider configured client to the resource.
@@ -100,11 +61,7 @@ func (r *dexClientResoure) Schema(_ context.Context, _ resource.SchemaRequest, r
 		Description: "Provision a Dex oauth2 client.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "The ID of your terraform resoure (Set to client_id automatically).",
-				Computed:    true,
-			},
-			"last_updated": schema.StringAttribute{
-				Description: "Timestamp of the last Terraform update of the Dex client.",
+				Description: "The ID of your terraform resource (Set to client_id automatically).",
 				Computed:    true,
 			},
 			"client_id": schema.StringAttribute{
@@ -115,9 +72,6 @@ func (r *dexClientResoure) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Description: "The Secret of your Dex oauth2 client. Not required for public clients.",
 				Optional:    true,
 				Sensitive:   true,
-				Validators: []validator.String{
-					secretRequiredWhenPublicFalseValidator{},
-				},
 			},
 			"public": schema.BoolAttribute{
 				Optional: true,
@@ -191,7 +145,6 @@ func (r *dexClientResoure) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	plan.ID = types.StringValue(response.Client.GetId())
-	// plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -267,8 +220,7 @@ func (r *dexClientResoure) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	plan.ID = types.StringValue(plan.ClientID.ValueString())
-	// plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
+		plan.ID = types.StringValue(plan.ClientID.ValueString())
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
