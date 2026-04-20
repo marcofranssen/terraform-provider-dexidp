@@ -15,9 +15,15 @@ jobs:
           - goos: linux
             goarch: amd64
             ext: ''
+            zip: linux_amd64
           - goos: windows
             goarch: amd64
-            ext: '.exe'
+            ext: .exe
+            zip: windows_amd64
+          - goos: darwin
+            goarch: amd64
+            ext: ''
+            zip: darwin_amd64
     steps:
       - uses: actions/checkout@v4
 
@@ -32,19 +38,28 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
-          OUTPUT_NAME="terraform-provider-dexidp_1.0.0_${GOOS}_${GOARCH}${{ matrix.ext }}"
+          mkdir -p release
+          OUTPUT_NAME="terraform-provider-dexidp"
           go build -ldflags="-s -w -X main.version=1.0.0 -X main.commit=${{ github.sha }}" -o "$OUTPUT_NAME" .
+          if [ "$GOOS" = "windows" ]; then
+            OUTPUT_NAME="${OUTPUT_NAME}.exe"
+          fi
+          cp "$OUTPUT_NAME" release/
+          cd release
+          zip terraform-provider-dexidp_1.0.0_${{ matrix.zip }}.zip terraform-provider-dexidp*
 
-      - name: Compute checksums
+      - name: Create checksums
         run: |
-          sha256sum terraform-provider-dexidp_1.0.0_* > terraform-provider-dexidp_1.0.0_SHA256SUMS
+          cd release
+          sha256sum terraform-provider-dexidp_1.0.0_*.zip > ../terraform-provider-dexidp_1.0.0_SHA256SUMS
 
-      - name: Upload artifacts
+      - name: Upload release artifacts
         uses: softprops/action-gh-release@v2
         with:
           files |
-            terraform-provider-dexidp_1.0.0_*
+            release/terraform-provider-dexidp_1.0.0_*.zip
             terraform-provider-dexidp_1.0.0_SHA256SUMS
+            terraform-registry-manifest.json
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
