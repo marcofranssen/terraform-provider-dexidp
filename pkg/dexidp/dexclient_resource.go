@@ -3,6 +3,8 @@ package dexidp
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/dexidp/dex/api/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -177,6 +179,7 @@ response, err := r.client.GetClient(ctx, &getReq)
 
 	state.ClientID = state.ID
 	state.Name = types.StringValue(c.Name)
+	state.Public = types.BoolValue(c.Public)
 	state.LogoURL = types.StringValue(c.LogoUrl)
 	// Do not set Secret as it comes back hashed from the API
 	redirectURIs, _ := types.ListValueFrom(ctx, types.StringType, c.RedirectUris)
@@ -189,6 +192,10 @@ response, err := r.client.GetClient(ctx, &getReq)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func isSerializationError(err error) bool {
+	return strings.Contains(err.Error(), "40001")
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -211,7 +218,20 @@ func (r *dexClientResoure) Update(ctx context.Context, req resource.UpdateReques
 		LogoUrl:      plan.LogoURL.ValueString(),
 	}
 
-	_, err := r.client.UpdateClient(ctx, &updateClientReq)
+	maxRetries := 3
+	var err error
+	for i := 0; i < maxRetries; i++ {
+		_, err = r.client.UpdateClient(ctx, &updateClientReq)
+		if err == nil {
+			break
+		}
+		if isSerializationError(err) {
+			time.Sleep(time.Duration(i+1) * 100 * time.Millisecond)
+			continue
+		}
+		break
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Dex Client",
@@ -220,7 +240,7 @@ func (r *dexClientResoure) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-		plan.ID = types.StringValue(plan.ClientID.ValueString())
+	plan.ID = types.StringValue(plan.ClientID.ValueString())
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
