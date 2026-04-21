@@ -1,11 +1,11 @@
 {
   "archives": {
     "linux_amd64": {
-      "hashes": ["h1:Ssms3IFn+W2+aMSTryjpzYOD8gF1qIlhoFuw5vK6+oM="],
+      "hashes": ["h1:9jJPPVsxoRQlCfMsft5k1S9csQONa20jl7s7uzFBEaA="],
       "url": "terraform-provider-dexidp_1.0.0_linux_amd64.zip"
     },
     "windows_amd64": {
-      "hashes": ["h1:gCCGexmeQbSMCeepAg7lBWWso9szDlffpOK9eZp9cwk="],
+      "hashes": ["h1:FN0HUIDyvA6jpttki1RQEKjr09TXQUQbP4TT1/GAJiQ="],
       "url": "terraform-provider-dexidp_1.0.0_windows_amd64.zip"
     }
   }

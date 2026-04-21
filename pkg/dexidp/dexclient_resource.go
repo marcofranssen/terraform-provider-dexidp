@@ -178,7 +178,7 @@ response, err := r.client.GetClient(ctx, &getReq)
 	state.ClientID = state.ID
 	state.Name = types.StringValue(c.Name)
 	state.LogoURL = types.StringValue(c.LogoUrl)
-	state.Secret = types.StringValue(c.Secret)
+	// Do not set Secret as it comes back hashed from the API
 	redirectURIs, _ := types.ListValueFrom(ctx, types.StringType, c.RedirectUris)
 	trustedPeers, _ := types.ListValueFrom(ctx, types.StringType, c.TrustedPeers)
 	state.RedirectURIs = redirectURIs
