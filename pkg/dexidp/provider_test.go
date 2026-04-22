@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp"
+	"github.com/dennismdejong/terraform-provider-dexidp/pkg/dexidp"
 )
 
 func GetProviderConfig() string {

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client"
+	"github.com/dennismdejong/terraform-provider-dexidp/pkg/dexidp/client"
 )
 
 func TestNew(t *testing.T) {

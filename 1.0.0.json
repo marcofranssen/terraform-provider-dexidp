@@ -1,0 +1,12 @@
+{
+  "archives": {
+    "linux_amd64": {
+      "hashes": ["h1:Ssms3IFn+W2+aMSTryjpzYOD8gF1qIlhoFuw5vK6+oM="],
+      "url": "terraform-provider-dexidp_1.0.0_linux_amd64.zip"
+    },
+    "windows_amd64": {
+      "hashes": ["h1:gCCGexmeQbSMCeepAg7lBWWso9szDlffpOK9eZp9cwk="],
+      "url": "terraform-provider-dexidp_1.0.0_windows_amd64.zip"
+    }
+  }
+}
