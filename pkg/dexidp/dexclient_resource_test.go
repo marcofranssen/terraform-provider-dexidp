@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	testResourceName = "dexidp_client.test_client"
+	testResourceName   = "dexidp_client.test_client"
+	testResourceNameWo = "dexidp_client.test_client_wo"
 )
 
 func TestClientResource(t *testing.T) {
@@ -42,6 +43,24 @@ resource "dexidp_client" "test_client" {
 				// The last_updated attribute does not exist in the Dex gRPC
 				// API, therefore there is no value for it during import.
 				ImportStateVerifyIgnore: []string{"last_updated"},
+			},
+			// Create with write-only secret testing
+			{
+				Config: GetProviderConfig() + `
+resource "dexidp_client" "test_client_wo" {
+	client_id     = "test-client-wo"
+	name          = "My Test Client WO"
+	secret_wo     = "WriteOnlySecret"
+	redirect_uris = ["https://my-test-app.marcofranssen.nl/callback"]
+}
+`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(testResourceNameWo, "id", "test-client-wo"),
+					resource.TestCheckResourceAttr(testResourceNameWo, "client_id", "test-client-wo"),
+					resource.TestCheckResourceAttr(testResourceNameWo, "name", "My Test Client WO"),
+					resource.TestCheckResourceAttr(testResourceNameWo, "secret_wo", "WriteOnlySecret"),
+					resource.TestCheckNoResourceAttr(testResourceNameWo, "secret"),
+				),
 			},
 			// Update and Read testing
 			{
