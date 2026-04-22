@@ -132,7 +132,7 @@ jobs:
       - name: Download modules
         run: go mod download
 
-      - name: Create kind 1.35.1 cluster
+      - name: Create Kubernetes v1.35.1 kind cluster
         uses: helm/kind-action@v1.14.0
         # Only build a kind cluster if there are chart changes to test.
         with:
