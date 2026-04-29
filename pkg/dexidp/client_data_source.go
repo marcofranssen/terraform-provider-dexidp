@@ -120,6 +120,6 @@ func (d *clientDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	config.RedirectURIs = redirectURIs
 	config.TrustedPeers = trustedPeers
 
-	diags = resp.State.Set(ctx, config)
+	diags = resp.State.Set(ctx, &config)
 	resp.Diagnostics.Append(diags...)
 }
