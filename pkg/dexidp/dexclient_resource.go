@@ -183,9 +183,13 @@ func (r *dexClientResoure) Read(ctx context.Context, req resource.ReadRequest, r
 		if isUnimplementedError(err) {
 			resp.Diagnostics.AddError(
 				"Error getting Dex client",
-				"The Dex server does not support the GetClient method. "+
-					"This usually means you need to upgrade your Dex server to a newer version. "+
-					"The GetClient method was added in Dex API v2 (Dex v2.37+).",
+				fmt.Sprintf(
+					"The Dex server does not support the GetClient method. "+
+						"This usually means you need to upgrade your Dex server to a newer version. "+
+						"The GetClient method was added in Dex API v2 (Dex v2.37+). "+
+						"Original RPC error: %v",
+					err,
+				),
 			)
 		} else {
 			resp.Diagnostics.AddError(
