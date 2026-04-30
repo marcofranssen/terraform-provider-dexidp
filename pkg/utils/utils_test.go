@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/marcofranssen/terraform-provider-dexidp/pkg/utils"
+	"github.com/dennismdejong/terraform-provider-dexidp/pkg/utils"
 )
 
 func TestListStringValuesToSlice(t *testing.T) {

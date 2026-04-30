@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/marcofranssen/terraform-provider-dexidp/pkg/utils"
+	"github.com/dennismdejong/terraform-provider-dexidp/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -49,9 +49,8 @@ type dexClientModel struct {
 	Name         types.String `tfsdk:"name"`
 	Public       types.Bool   `tfsdk:"public"`
 	LogoURL      types.String `tfsdk:"logo_url"`
-	RedirectURIs types.List   `tfsdk:"redirect_uris"`
-	TrustedPeers types.List   `tfsdk:"trusted_peers"`
-	LastUpdated  types.String `tfsdk:"last_updated"`
+	RedirectURIs types.List `tfsdk:"redirect_uris"`
+	TrustedPeers types.List `tfsdk:"trusted_peers"`
 }
 
 // Configure adds the provider configured client to the resource.
@@ -74,11 +73,7 @@ func (r *dexClientResoure) Schema(_ context.Context, _ resource.SchemaRequest, r
 		Description: "Provision a Dex oauth2 client.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "The ID of your terraform resoure (Set to client_id automatically).",
-				Computed:    true,
-			},
-			"last_updated": schema.StringAttribute{
-				Description: "Timestamp of the last Terraform update of the Dex client.",
+				Description: "The ID of your terraform resource (Set to client_id automatically).",
 				Computed:    true,
 			},
 			"client_id": schema.StringAttribute{
@@ -86,8 +81,8 @@ func (r *dexClientResoure) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Required:    true,
 			},
 			"secret": schema.StringAttribute{
-				Description: "The Secret of your Dex oauth2 client.",
-				Required:    true,
+				Description: "The Secret of your Dex oauth2 client. Not required for public clients.",
+				Optional:    true,
 				Sensitive:   true,
 			},
 			"public": schema.BoolAttribute{
@@ -129,16 +124,21 @@ func (r *dexClientResoure) Create(ctx context.Context, req resource.CreateReques
 	redirectURIs := utils.ListStringValuesToSlice(plan.RedirectURIs)
 	trustedPeers := utils.ListStringValuesToSlice(plan.TrustedPeers)
 
+	client := &api.Client{
+		Id:           plan.ClientID.ValueString(),
+		Name:         plan.Name.ValueString(),
+		Public:       plan.Public.ValueBool(),
+		RedirectUris: redirectURIs,
+		TrustedPeers: trustedPeers,
+		LogoUrl:      plan.LogoURL.ValueString(),
+	}
+
+	if !plan.Public.ValueBool() {
+		client.Secret = plan.Secret.ValueString()
+	}
+
 	createClientReq := api.CreateClientReq{
-		Client: &api.Client{
-			Id:           plan.ClientID.ValueString(),
-			Secret:       plan.Secret.ValueString(),
-			Name:         plan.Name.ValueString(),
-			Public:       plan.Public.ValueBool(),
-			RedirectUris: redirectURIs,
-			TrustedPeers: trustedPeers,
-			LogoUrl:      plan.LogoURL.ValueString(),
-		},
+		Client: client,
 	}
 	response, err := r.client.CreateClient(ctx, &createClientReq)
 	if err != nil {
@@ -151,13 +151,12 @@ func (r *dexClientResoure) Create(ctx context.Context, req resource.CreateReques
 	if response.AlreadyExists {
 		resp.Diagnostics.AddError(
 			"Error creating Dex client",
-			fmt.Sprintf("Could not create Dex client, client with this Name already exists: %v", err),
+			"Could not create Dex client, client with this Name already exists.",
 		)
 		return
 	}
 
 	plan.ID = types.StringValue(response.Client.GetId())
-	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -178,7 +177,7 @@ func (r *dexClientResoure) Read(ctx context.Context, req resource.ReadRequest, r
 	getReq := api.GetClientReq{
 		Id: state.ID.ValueString(),
 	}
-	response, err := r.client.GetClient(ctx, &getReq)
+response, err := r.client.GetClient(ctx, &getReq)
 	if err != nil {
 		if isUnimplementedError(err) {
 			resp.Diagnostics.AddError(
@@ -203,8 +202,9 @@ func (r *dexClientResoure) Read(ctx context.Context, req resource.ReadRequest, r
 
 	state.ClientID = state.ID
 	state.Name = types.StringValue(c.Name)
+	state.Public = types.BoolValue(c.Public)
 	state.LogoURL = types.StringValue(c.LogoUrl)
-	state.Secret = types.StringValue(c.Secret)
+	// Do not set Secret as it comes back hashed from the API
 	redirectURIs, _ := types.ListValueFrom(ctx, types.StringType, c.RedirectUris)
 	trustedPeers, _ := types.ListValueFrom(ctx, types.StringType, c.TrustedPeers)
 	state.RedirectURIs = redirectURIs
@@ -215,6 +215,10 @@ func (r *dexClientResoure) Read(ctx context.Context, req resource.ReadRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func isSerializationError(err error) bool {
+	return strings.Contains(err.Error(), "40001")
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -237,7 +241,20 @@ func (r *dexClientResoure) Update(ctx context.Context, req resource.UpdateReques
 		LogoUrl:      plan.LogoURL.ValueString(),
 	}
 
-	_, err := r.client.UpdateClient(ctx, &updateClientReq)
+	maxRetries := 3
+	var err error
+	for i := 0; i < maxRetries; i++ {
+		_, err = r.client.UpdateClient(ctx, &updateClientReq)
+		if err == nil {
+			break
+		}
+		if isSerializationError(err) {
+			time.Sleep(time.Duration(i+1) * 100 * time.Millisecond)
+			continue
+		}
+		break
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Dex Client",
@@ -247,7 +264,6 @@ func (r *dexClientResoure) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	plan.ID = types.StringValue(plan.ClientID.ValueString())
-	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC850))
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)

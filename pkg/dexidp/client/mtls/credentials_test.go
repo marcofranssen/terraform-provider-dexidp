@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client/mtls"
+	"github.com/dennismdejong/terraform-provider-dexidp/pkg/dexidp/client/mtls"
 )
 
 func TestNewCredentials(t *testing.T) {
