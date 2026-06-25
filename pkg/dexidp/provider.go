@@ -140,7 +140,10 @@ func newDexClient(host string, tlsCfg *tlsConfiguration) (api.DexClient, error) 
 
 // DataSources defines the data sources implemented in the provider.
 func (p *dexProvider) DataSources(context.Context) []func() datasource.DataSource {
-	return nil
+	return []func() datasource.DataSource{
+		NewDexDiscoveryDataSource,
+	}
+
 }
 
 // Resources defines the resources implemented in the provider.

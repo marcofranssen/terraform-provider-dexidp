@@ -1,3 +1,6 @@
+image:
+  tag: sha256-9713eb7af2be533da67e6aa20a85f7f524e01591e0498402742b9b0894b3a683
+
 volumes:
   - name: tls
     configMap:
