@@ -125,7 +125,7 @@ jobs:
           cache: true
 
       - name: Set up Helm
-        uses: azure/setup-helm@v5.0.0
+        uses: azure/setup-helm@v5.0.1
         with:
           version: v4.1.4
 
