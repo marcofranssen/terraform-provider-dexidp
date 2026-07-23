@@ -31,12 +31,12 @@ resource "dexidp_client" "my_oidc_client" {
 - `client_id` (String) The ID of your Dex oauth2 client.
 - `name` (String) The name of your Dex oauth2 client.
 - `redirect_uris` (List of String) The allowed redirect_uris for this Dex Oauth2 client.
-- `secret` (String, Sensitive) The Secret of your Dex oauth2 client.
 
 ### Optional
 
 - `logo_url` (String) The url to the logo of your Dex oauth2 client.
-- `public` (Boolean)
+- `public` (Boolean) Whether this is a public client.
+- `secret` (String, Sensitive) The secret of your Dex OAuth2 client. Public clients do not use a secret.
 - `trusted_peers` (List of String) The trusted peers for this Dex Oauth2 client.
 
 ### Read-Only

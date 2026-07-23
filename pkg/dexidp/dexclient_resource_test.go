@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	testResourceName = "dexidp_client.test_client"
+	testResourceName       = "dexidp_client.test_client"
+	testPublicResourceName = "dexidp_client.test_public_client"
 )
 
 func TestClientResource(t *testing.T) {
@@ -65,6 +66,33 @@ resource "dexidp_client" "test_client" {
 				),
 			},
 			// Delete testing automatically occurs in TestCase
+		},
+	})
+}
+
+func TestPublicClientResource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: GetProviderConfig() + `
+resource "dexidp_client" "test_public_client" {
+	client_id     = "test-public-client"
+	name          = "My Public Test Client"
+	public        = true
+	redirect_uris = ["http://localhost:9876/callback"]
+}
+`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(testPublicResourceName, "id", "test-public-client"),
+					resource.TestCheckResourceAttr(testPublicResourceName, "client_id", "test-public-client"),
+					resource.TestCheckResourceAttr(testPublicResourceName, "name", "My Public Test Client"),
+					resource.TestCheckResourceAttr(testPublicResourceName, "public", "true"),
+					resource.TestCheckNoResourceAttr(testPublicResourceName, "secret"),
+					resource.TestCheckResourceAttr(testPublicResourceName, "redirect_uris.#", "1"),
+					resource.TestCheckResourceAttr(testPublicResourceName, "redirect_uris.0", "http://localhost:9876/callback"),
+				),
+			},
 		},
 	})
 }
