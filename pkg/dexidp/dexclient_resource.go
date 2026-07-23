@@ -141,18 +141,22 @@ func (r *dexClientResoure) ValidateConfig(ctx context.Context, req resource.Vali
 		return
 	}
 
-	if config.Public.IsUnknown() || config.Secret.IsUnknown() {
+	if config.Public.IsUnknown() {
 		return
 	}
 
 	if config.Public.ValueBool() {
-		if !config.Secret.IsNull() && config.Secret.ValueString() != "" {
+		if !config.Secret.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("secret"),
 				"Secret Not Allowed",
 				"secret must be omitted for a public client.",
 			)
 		}
+		return
+	}
+
+	if config.Secret.IsUnknown() {
 		return
 	}
 
