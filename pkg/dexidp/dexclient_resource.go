@@ -10,7 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,9 +24,10 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &dexClientResoure{}
-	_ resource.ResourceWithConfigure   = &dexClientResoure{}
-	_ resource.ResourceWithImportState = &dexClientResoure{}
+	_ resource.Resource                   = &dexClientResoure{}
+	_ resource.ResourceWithConfigure      = &dexClientResoure{}
+	_ resource.ResourceWithImportState    = &dexClientResoure{}
+	_ resource.ResourceWithValidateConfig = &dexClientResoure{}
 )
 
 // NewDexClientResource instantiates a new Dex Client resource.
@@ -86,12 +91,21 @@ func (r *dexClientResoure) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Required:    true,
 			},
 			"secret": schema.StringAttribute{
-				Description: "The Secret of your Dex oauth2 client.",
-				Required:    true,
+				Description: "The secret of your Dex OAuth2 client. Public clients do not use a secret.",
+				Optional:    true,
 				Sensitive:   true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"public": schema.BoolAttribute{
-				Optional: true,
+				Description: "Whether this is a public client.",
+				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Description: "The name of your Dex oauth2 client.",
@@ -117,6 +131,44 @@ func (r *dexClientResoure) Schema(_ context.Context, _ resource.SchemaRequest, r
 	}
 }
 
+// ValidateConfig ensures private clients have a secret and public clients do not
+// accidentally send one to Dex.
+func (r *dexClientResoure) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var config dexClientModel
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if config.Public.IsUnknown() {
+		return
+	}
+
+	if config.Public.ValueBool() {
+		if !config.Secret.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("secret"),
+				"Secret Not Allowed",
+				"secret must be omitted for a public client.",
+			)
+		}
+		return
+	}
+
+	if config.Secret.IsUnknown() {
+		return
+	}
+
+	if config.Secret.IsNull() || config.Secret.ValueString() == "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("secret"),
+			"Secret Required",
+			"secret must be configured for a private client.",
+		)
+	}
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *dexClientResoure) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan dexClientModel
@@ -129,17 +181,19 @@ func (r *dexClientResoure) Create(ctx context.Context, req resource.CreateReques
 	redirectURIs := utils.ListStringValuesToSlice(plan.RedirectURIs)
 	trustedPeers := utils.ListStringValuesToSlice(plan.TrustedPeers)
 
-	createClientReq := api.CreateClientReq{
-		Client: &api.Client{
-			Id:           plan.ClientID.ValueString(),
-			Secret:       plan.Secret.ValueString(),
-			Name:         plan.Name.ValueString(),
-			Public:       plan.Public.ValueBool(),
-			RedirectUris: redirectURIs,
-			TrustedPeers: trustedPeers,
-			LogoUrl:      plan.LogoURL.ValueString(),
-		},
+	client := &api.Client{
+		Id:           plan.ClientID.ValueString(),
+		Name:         plan.Name.ValueString(),
+		Public:       plan.Public.ValueBool(),
+		RedirectUris: redirectURIs,
+		TrustedPeers: trustedPeers,
+		LogoUrl:      plan.LogoURL.ValueString(),
 	}
+	if !plan.Public.ValueBool() {
+		client.Secret = plan.Secret.ValueString()
+	}
+
+	createClientReq := api.CreateClientReq{Client: client}
 	response, err := r.client.CreateClient(ctx, &createClientReq)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -204,7 +258,12 @@ func (r *dexClientResoure) Read(ctx context.Context, req resource.ReadRequest, r
 	state.ClientID = state.ID
 	state.Name = types.StringValue(c.Name)
 	state.LogoURL = types.StringValue(c.LogoUrl)
-	state.Secret = types.StringValue(c.Secret)
+	state.Public = types.BoolValue(c.Public)
+	if c.Public {
+		state.Secret = types.StringNull()
+	} else {
+		state.Secret = types.StringValue(c.Secret)
+	}
 	redirectURIs, _ := types.ListValueFrom(ctx, types.StringType, c.RedirectUris)
 	trustedPeers, _ := types.ListValueFrom(ctx, types.StringType, c.TrustedPeers)
 	state.RedirectURIs = redirectURIs
