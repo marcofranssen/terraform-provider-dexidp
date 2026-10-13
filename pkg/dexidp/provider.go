@@ -2,6 +2,7 @@ package dexidp
 
 import (
 	"context"
+	"crypto/tls"
 	"os"
 
 	"github.com/dexidp/dex/api/v2"
@@ -10,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 
 	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client"
 	"github.com/marcofranssen/terraform-provider-dexidp/pkg/dexidp/client/mtls"
@@ -122,7 +123,7 @@ func (p *dexProvider) Configure(ctx context.Context, req provider.ConfigureReque
 
 func newDexClient(host string, tlsCfg *tlsConfiguration) (api.DexClient, error) {
 	if tlsCfg == nil {
-		return client.New(host, insecure.NewCredentials())
+		return client.New(host, credentials.NewTLS(&tls.Config{InsecureSkipVerify: true}))
 	}
 
 	credentials, err := mtls.NewCredentials(mtls.Config{
